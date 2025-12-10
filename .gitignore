@@ -2,3 +2,6 @@
 logs/etl.log
 .gitignore
 *.pyc
+src/utils/__pycache__/config.cpython-313.pyc
+src/utils/__pycache__/db.cpython-313.pyc
+data/sources/source_34.csv
