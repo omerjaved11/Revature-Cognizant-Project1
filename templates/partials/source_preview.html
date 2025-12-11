@@ -131,3 +131,8 @@
         </div>
     </div>
 </div>
+{% if sources_table_html %}
+  <div id="sources-table" hx-swap-oob="true">
+    {{ sources_table_html|safe }}
+  </div>
+{% endif %}

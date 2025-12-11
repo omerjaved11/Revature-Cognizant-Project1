@@ -1,254 +1,289 @@
-# 🚀 ETL Data Pipeline — Python + PostgreSQL + Docker
+# ETL Web Application
 
-This project implements a **modular ETL (Extract–Transform–Load) pipeline** using:
+A lightweight ETL and data exploration web app built with FastAPI and pandas. The application lets users upload CSV files as data sources, preview and validate them, apply simple cleaning steps, export and replay a transformation pipeline, and load curated datasets into PostgreSQL. It also includes a Retail ETL demo flow.
 
-* **Python 3.11+**
-* **PostgreSQL 15** (Dockerized)
-* **Docker Compose**
-* **YAML-based configuration**
-* **Structured logging**
-* **Configurable ingestion (CSV, JSON, API)**
-
-The pipeline reads raw files, validates and cleans data, loads it into PostgreSQL, and logs every step.
+This app is designed for local development and classroom or portfolio use, with a clean path toward production hardening.
 
 ---
 
-## 📁 Project Structure
+## Key Features
+
+### Data Sources
+
+* Upload CSV files with optional skip-rows support.
+* Auto-saves source metadata to the database.
+* Stores raw files under `data/input` and/or a dedicated sources folder used by the app.
+* In-browser preview of the first 10 rows.
+* Validation report per column:
+
+  * dtype
+  * null count
+  * null percentage
+  * sample values
+* Cleaning actions:
+
+  * drop rows with null values
+  * drop selected columns
+* Save cleaned state back to disk.
+* Export pipeline config as JSON.
+* Replay pipeline from raw CSV.
+* Load a source into PostgreSQL with modes:
+
+  * overwrite
+  * append
+
+### Database Tables
+
+* List user tables in the target schema.
+* Preview table head in the UI.
+* JSON API endpoint to fetch table rows.
+* Basic visualizations for numeric and categorical columns.
+
+### Retail ETL
+
+* A demo ETL flow to showcase end-to-end extraction, transformation, and loading patterns for a retail dataset.
+
+---
+
+## Tech Stack
+
+* **Backend:** FastAPI
+* **Data Processing:** pandas
+* **Database:** PostgreSQL
+* **Templating:** Jinja2
+* **UI Interactions:** HTMX (partials-based)
+* **Containerization:** Docker / Docker Compose
+* **Testing:** pytest
+
+---
+
+## Project Structure
 
 ```
-Revature-Cognizant-Project1/
-│
-├── src/
-│   ├── main.py               # ETL entrypoint
-│   ├── utils/
-│   │   ├── db.py             # DB connection handling
-│   │   ├── logger.py         # Project-wide logging
-│   │   └── config.py         # YAML configuration loader
-│
+.
 ├── config/
-│   └── config.yaml           # DB + ETL settings
-│
-├── data/                     # (mounted) input/output files
-│
+├── data/
+│   └── input/
 ├── docker/
-│   ├── etl.Dockerfile        # Dockerfile for ETL container
-│   ├── postgresql.conf       # (optional) custom DB config
-│   └── init.sql              # (optional) bootstrap SQL
-│
-├── docker-compose.yml
-├── requirements.txt
-├── .env                      # DO NOT COMMIT (contains secrets)
-└── README.md
+├── logs/
+├── src/
+│   ├── config/
+│   ├── etl/
+│   │   └── retail/
+│   ├── logs/
+│   ├── utils/
+│   └── web/
+├── static/
+│   └── css/
+├── templates/
+│   └── partials/
+└── tests/
 ```
 
+### Directory Purpose
+
+* **config/**
+  Environment-level configuration files.
+
+* **data/input/**
+  Local data storage for uploaded or sample datasets.
+
+* **docker/**
+  Docker and Compose-related assets.
+
+* **logs/**
+  Top-level log output directory.
+
+* **src/config/**
+  Application configuration code (settings, constants, env loading).
+
+* **src/etl/retail/**
+  Retail ETL implementation and orchestration entrypoints.
+
+* **src/logs/**
+  App-level logging utilities or log configuration.
+
+* **src/utils/**
+  Shared utilities:
+
+  * database helpers
+  * pipeline helpers
+  * logging
+  * data load utilities
+
+* **src/web/**
+  FastAPI routes and web layer logic.
+
+* **static/css/**
+  Stylesheets.
+
+* **templates/**
+  Jinja2 templates.
+
+* **templates/partials/**
+  HTMX fragments for dynamic UI updates.
+
+* **tests/**
+  Unit and integration tests.
+
 ---
 
-## 🔧 Technologies Used
+## Local Setup (Without Docker)
 
-| Component  | Technology              |
-| ---------- | ----------------------- |
-| Language   | Python 3.11             |
-| DB         | PostgreSQL 15 (Docker)  |
-| UI         | pgAdmin 4 (Docker)      |
-| Config     | YAML                    |
-| Logging    | Python logging module   |
-| Deployment | Docker & Docker Compose |
-
----
-
-## 🚨 Environment Setup
-
-### 1. Install dependencies (local development)
+### 1. Create and activate a virtual environment
 
 ```bash
 python -m venv .venv
-.\.venv\Scripts\activate
+# Windows
+.venv\Scripts\activate
+# macOS/Linux
+source .venv/bin/activate
+```
+
+### 2. Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
----
+### 3. Configure environment variables
 
-### 2. Create `.env` (NOT committed to Git)
+Create a `.env` file in the project root:
 
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=etl_db
+DB_USER=postgres
+DB_PASSWORD=postgres
+
+# Optional
+APP_ENV=development
+LOG_LEVEL=INFO
 ```
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=postgres
-POSTGRES_PORT=5434
-```
 
-> 💡 **We use port `5434` instead of `5432`** to avoid conflicts with any local PostgreSQL installation.
+### 4. Start PostgreSQL
 
----
+Ensure your database is running and accessible based on the variables above.
 
-### 3. Start Postgres & pgAdmin via Docker
+### 5. Run the app
 
 ```bash
-docker compose up -d postgres pgadmin
+uvicorn src.web.app:app --reload
 ```
 
-Check running containers:
+If your app entrypoint is different, replace this path with your actual module.
+
+---
+
+## Docker Setup
+
+If you have a Compose setup in `docker/`:
 
 ```bash
-docker compose ps
+docker compose up --build
 ```
 
----
-
-### 4. Connect with pgAdmin
-
-* URL: [http://localhost:8080](http://localhost:8080)
-* Email: `admin@example.com`
-* Password: `admin`
-
-Create new server:
-
-| Field    | Value       |
-| -------- | ----------- |
-| Host     | `localhost` |
-| Port     | `5434`      |
-| Username | from `.env` |
-| Password | from `.env` |
-| Database | `postgres`  |
-
----
-
-## ▶️ Running the ETL Pipeline (2 ways)
-
-### **Option A — Run ETL locally (recommended during dev)**
+To rebuild from scratch:
 
 ```bash
-python src/main.py
+docker compose down -v
+docker compose up --build
 ```
 
-### **Option B — Run ETL inside Docker**
+---
+
+## Using the Web App
+
+### Home
+
+* `GET /`
+
+### Sources
+
+* `GET /sources`
+* Upload CSV via UI
+* Open, validate, clean, save, export config, replay pipeline
+
+### Load to DB
+
+* Use the UI load form or endpoint:
+
+  * `POST /sources/{source_id}/load`
+
+### Tables
+
+* `GET /tables`
+* Preview:
+
+  * `GET /tables/{table_name}/preview`
+* JSON API:
+
+  * `GET /api/tables/{table_name}?limit=100`
+* Visualize:
+
+  * `GET /tables/{table_name}/visualize`
+
+### Retail ETL
+
+* `GET /etls`
+* Run:
+
+  * `POST /etls/retail/run`
+
+---
+
+## Testing
+
+Run all tests:
 
 ```bash
-docker compose up --build etl
+pytest -q
 ```
 
-Or for logs:
+If you have DB-dependent tests, ensure the test database is available and configured.
 
-```bash
-docker compose logs -f etl
+---
+
+## Logging
+
+Logs are written to:
+
+* `logs/` (project-level)
+* and/or `src/logs/` depending on your logger configuration.
+
+You can control verbosity via:
+
+```env
+LOG_LEVEL=DEBUG
 ```
 
 ---
 
-## ⚙️ Configuration (config/config.yaml)
+## Notes on Current Design
 
-Your ETL + DB settings live in:
-
-```yaml
-database:
-  host: localhost
-  port: 5434
-  user: postgres
-  password: postgres
-  name: postgres
-
-logging:
-  log_dir: logs
-  log_level: INFO
-  log_format: "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
-```
-
-You may add:
-
-* input file paths
-* ingestion schedules
-* API endpoint settings
-* validation rules
+* The app maintains an in-memory DataFrame store for active sources to enable fast previews and step-by-step cleaning.
+* Source files are also persisted to disk so sessions can be restored.
+* Pipeline steps are stored in-memory during interaction and can be exported as JSON for reproducibility.
 
 ---
 
-## 🧪 Verifying DB Connection
+## Roadmap (Post Freeze)
 
-Inside project root:
+Ideas to improve after the code freeze:
 
-```bash
-cd src
-python -c "from utils.db import get_db_connection; c = get_db_connection(); print('connected:', c is not None); c and c.close()"
-```
-
-Expected:
-
-```
-connected: True
-```
+* Split large route modules into feature-based routers.
+* Add a service layer for CSV handling, pipeline processing, and DB operations.
+* Add stronger schema validation for uploads.
+* Add batch implementation to load data in batches.
+* Add Scheduler service to schedule the ETLs.
+* Improve error handling with global exception handlers.
+* Add authentication if the app is used in multi-user contexts.
 
 ---
 
-## 🐳 Docker Compose Services
+## License
 
-### **etl**
-
-* Runs Python ETL in container
-* Mounted `/data` for real file access
-* Uses `.env` for DB values
-
-### **postgres**
-
-* PostgreSQL 15 server
-* Port mapped `5434:5432`
-* Data persisted in Docker volume
-
-### **pgadmin**
-
-* Database GUI
-* Accessible on `http://localhost:8080`
+Omer 
 
 ---
-
-## 📦 Deployment
-
-To deploy everything in containers:
-
-```bash
-docker compose up --build -d
-```
-
-To stop:
-
-```bash
-docker compose down
-```
-
----
-
-## 🔒 Security Notes
-
-* **Never commit `.env`**
-* Commit **`.env.example`** instead:
-
-```
-POSTGRES_USER=
-POSTGRES_PASSWORD=
-POSTGRES_DB=
-POSTGRES_PORT=
-```
-
-* Use environment variables in production (e.g., Docker Secrets)
-
----
-
-## 📝 Git Workflow
-
-Since you started on `main` but want to push code to a branch:
-
-```bash
-git checkout -b feature/etl-setup
-git push -u origin feature/etl-setup
-```
-
----
-
-## 📌 Future Enhancements (optional)
-
-* Add Alembic for DB migrations
-* Add CSV/JSON ingestion pipelines
-* Add API ingestion
-* Add data validation layer (Pydantic)
-* Add unit tests
-* Add cron-based scheduling
-* Add Airflow integration

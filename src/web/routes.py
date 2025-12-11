@@ -451,8 +451,17 @@ async def save_source(request: Request, source_id: int):
     except Exception:
         # We already saved the file; just log DB error.
         logger.exception("Failed to update shape in DB for source_id=%s", source_id)
-
+    
+    try:
+        sources = get_all_data_sources()
+    except Exception:
+        logger.exception("Error fetching data sources after save")
+        sources = []
     # Rebuild preview with a success message
+    sources_table_html = templates.get_template("partials/sources_table.html").render(
+        request=request,
+        sources=sources,
+    )
     preview_df = df.head(10)
     table_html = preview_df.to_html(classes="preview-table", index=False)
 
@@ -466,6 +475,7 @@ async def save_source(request: Request, source_id: int):
             "request": request,
             "filename": f"Saved Source (ID: {source_id})",
             "preview_html": message_html + table_html,
+            "sources_table_html": sources_table_html,
             "source_id": source_id,
         },
     )

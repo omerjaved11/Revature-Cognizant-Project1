@@ -16,6 +16,20 @@
         {% if error %}
             <p class="muted-text">Could not generate charts for this table.</p>
         {% else %}
+            <!-- Local styles to make charts big and readable -->
+            <style>
+                .plots-grid {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1.25rem;
+                }
+
+                .plotly-chart {
+                    width: 100%;
+                    min-height: 350px;
+                }
+            </style>
+
             <div>
                 <h5>Numeric columns</h5>
                 <div id="numeric-plots" class="plots-grid"></div>
@@ -27,7 +41,7 @@
             </div>
 
             <script>
-                (function() {
+                (function () {
                     const numericData = {{ numeric_data_json | safe }};
                     const categoricalData = {{ categorical_data_json | safe }};
 
@@ -47,18 +61,22 @@
                             div.className = "plotly-chart";
                             numContainer.appendChild(div);
 
-                            Plotly.newPlot(
-                                div.id,
-                                [{
-                                    x: trace.values,
-                                    type: "histogram",
-                                }],
-                                {
-                                    title: `Histogram of ${trace.col}`,
-                                    margin: {t: 40, l: 40, r: 10, b: 40},
-                                },
-                                {displayModeBar: false}
-                            );
+                            const data = [{
+                                x: trace.values,
+                                type: "histogram"
+                            }];
+
+                            const layout = {
+                                title: `Histogram of ${trace.col}`,
+                                height: 380,
+                                margin: { t: 40, l: 40, r: 20, b: 40 },
+                                autosize: true
+                            };
+
+                            Plotly.newPlot(div, data, layout, {
+                                displayModeBar: false,
+                                responsive: true
+                            });
                         });
 
                         // Categorical bar charts
@@ -68,20 +86,24 @@
                             div.className = "plotly-chart";
                             catContainer.appendChild(div);
 
-                            Plotly.newPlot(
-                                div.id,
-                                [{
-                                    x: trace.labels,
-                                    y: trace.values,
-                                    type: "bar",
-                                }],
-                                {
-                                    title: `Top values for ${trace.col}`,
-                                    margin: {t: 40, l: 40, r: 10, b: 80},
-                                    xaxis: {tickangle: -45},
-                                },
-                                {displayModeBar: false}
-                            );
+                            const data = [{
+                                x: trace.labels,
+                                y: trace.values,
+                                type: "bar"
+                            }];
+
+                            const layout = {
+                                title: `Top values for ${trace.col}`,
+                                height: 380,
+                                margin: { t: 40, l: 40, r: 20, b: 80 },
+                                xaxis: { tickangle: -45, automargin: true },
+                                autosize: true
+                            };
+
+                            Plotly.newPlot(div, data, layout, {
+                                displayModeBar: false,
+                                responsive: true
+                            });
                         });
                     }
 
@@ -89,7 +111,7 @@
                     document.addEventListener("DOMContentLoaded", renderPlots);
                     // For HTMX swaps
                     document.addEventListener("htmx:afterSettle", renderPlots);
-                    // Call once right away in case this partial was just inserted.
+                    // Call once in case this partial was just inserted
                     renderPlots();
                 })();
             </script>

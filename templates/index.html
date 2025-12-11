@@ -1,25 +1,153 @@
 {% extends "base.html" %}
 
-{% block title %}ETL Builder - Home{% endblock %}
-
 {% block content %}
-<section>
-    <h2>Welcome to your ETL Builder</h2>
-    <p>
-        This tool will let you:
-    </p>
-    <ul>
-        <li>Select one or more <strong>sources</strong> (CSV, JSON, API, XML, Website tables)</li>
-        <li>Define <strong>transformations</strong> (drop columns, handle nulls, joins, create new columns, etc.)</li>
-        <li><strong>Load</strong> the cleaned data into PostgreSQL tables</li>
-        <li>Track <strong>runs, logs, and rejected records</strong></li>
-    </ul>
+<style>
+    .home-hero {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
 
-    <p>Next steps we’ll add:</p>
-    <ol>
-        <li>“Sources” page: add and preview data sources</li>
-        <li>“Transform” page: build transformation pipeline</li>
-        <li>“Load” page: choose DB/table and load</li>
-    </ol>
-</section>
+    .home-hero__title {
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+
+    .home-hero__subtitle {
+        color: #9ca3af;
+        max-width: 48rem;
+    }
+
+    .home-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    .card--clickable {
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.12s ease, box-shadow 0.12s ease,
+                    border-color 0.12s ease;
+    }
+
+    .card--clickable:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        border-color: #4f46e5;
+    }
+
+    .pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0.15rem 0.65rem;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        background: rgba(79, 70, 229, 0.15);
+        color: #a5b4fc;
+    }
+
+    .home-howto-list {
+        margin: 0.75rem 0 0 1.1rem;
+        padding: 0;
+    }
+
+    .home-howto-list li {
+        margin-bottom: 0.25rem;
+    }
+</style>
+
+<div class="home-hero">
+    <div class="pill">ETL Workspace</div>
+    <h1 class="home-hero__title">Build, inspect, and load your data pipelines.</h1>
+    <p class="home-hero__subtitle">
+        Upload raw CSVs, explore and clean them in the browser, replay
+        transformation steps, and load curated datasets into PostgreSQL.
+        Use the Retail ETL demo to see an end-to-end flow in action.
+    </p>
+</div>
+
+<div class="home-grid">
+    <!-- Sources -->
+    <a href="/sources" class="card card--clickable">
+        <div class="card__header card__header--compact">
+            <h3 class="card__title">Start with a CSV</h3>
+            <p class="card__subtitle">
+                Upload, preview, validate, and clean data sources.
+            </p>
+        </div>
+        <div class="card__body">
+            <ul class="home-howto-list">
+                <li>Upload CSV files with optional skipped header rows.</li>
+                <li>See column dtypes, null counts, and sample values.</li>
+                <li>Drop null rows or remove noisy columns with one click.</li>
+                <li>Save changes and export a JSON pipeline config.</li>
+            </ul>
+        </div>
+    </a>
+
+    <!-- Tables -->
+    <a href="/tables" class="card card--clickable">
+        <div class="card__header card__header--compact">
+            <h3 class="card__title">Browse database tables</h3>
+            <p class="card__subtitle">
+                Inspect what is already in PostgreSQL.
+            </p>
+        </div>
+        <div class="card__body">
+            <ul class="home-howto-list">
+                <li>List all user tables in your schema.</li>
+                <li>Preview the first rows directly in the UI.</li>
+                <li>Fetch JSON snapshots for debugging or APIs.</li>
+                <li>Generate quick histograms and bar charts per column.</li>
+            </ul>
+        </div>
+    </a>
+
+    <!-- Retail ETL -->
+    <a href="/etls" class="card card--clickable">
+        <div class="card__header card__header--compact">
+            <h3 class="card__title">Run Retail ETL</h3>
+            <p class="card__subtitle">
+                Example batch ETL job wired into the UI.
+            </p>
+        </div>
+        <div class="card__body">
+            <ul class="home-howto-list">
+                <li>Trigger the retail ETL from the web console.</li>
+                <li>Configure batch size and run mode.</li>
+                <li>Review log output and run summary on completion.</li>
+                <li>Use as a template for your own domain ETLs.</li>
+            </ul>
+        </div>
+    </a>
+</div>
+
+<div class="card card--nested">
+    <div class="card__header card__header--compact">
+        <h4 class="card__title">How this tool fits into your workflow</h4>
+        <p class="card__subtitle">
+            A simple flow from raw files to database tables.
+        </p>
+    </div>
+    <div class="card__body">
+        <ol class="home-howto-list">
+            <li><strong>Upload</strong> a source CSV on the <em>Sources</em> page.</li>
+            <li><strong>Validate &amp; clean</strong> with the built-in checks and cleaning actions.</li>
+            <li><strong>Save &amp; replay</strong> the transformation pipeline as many times as you like.</li>
+            <li><strong>Load to DB</strong> into a target table (overwrite or append modes).</li>
+            <li><strong>Explore</strong> the resulting table from the <em>Tables</em> page and visualize columns.</li>
+        </ol>
+        <p class="muted-text" style="margin-top:0.75rem;">
+            You can safely use this environment for experiments: files are
+            stored under <code>data/</code>, and all changes are tracked in the
+            data sources metadata table.
+        </p>
+    </div>
+</div>
 {% endblock %}
