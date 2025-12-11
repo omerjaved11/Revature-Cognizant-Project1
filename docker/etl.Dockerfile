@@ -6,7 +6,9 @@ COPY requirements.txt .
 
 RUN pip install -r requirements.txt --no-cache-dir
 
-COPY src/ ./src
-COPY data/ ./data
+COPY . .
 
-CMD ["python", "src/main.py"]
+# Expose FastAPI port
+EXPOSE 8000
+
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
